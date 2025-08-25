@@ -1,0 +1,60 @@
+# file: n8n-demo-policy.yml
+
+# 1) Secret branch: data/n8n/demo
+- !policy
+  id: data
+  body:
+  - !policy
+    id: n8n
+    body:
+    - !policy
+      id: demo
+      annotations:
+        description: "Secrets for n8n demo"
+      body:
+      - !variable
+        id: username
+        annotations:
+          description: "User Name"
+      - !variable
+        id: password
+        annotations:
+          description: "Password"
+          sensitivity: high
+      - !variable
+        id: host
+        annotations:
+          description: "URL Endpoint"
+
+# 2) JWT Authenticator: authn-jwt/n8n (JWKS-based)
+- !policy
+  id: conjur
+  body:
+  - !policy
+    id: authn-jwt
+    body:
+    - !policy
+      id: n8n
+      annotations:
+        description: "JWT authenticator for n8n using JWKS URI"
+      body:
+      - !webservice
+
+      # Configuration variables for this JWT service
+      - !variable id: jwks-uri     # REQUIRED: URL to JWKS (e.g., https://idp/.well-known/jwks.json)
+      - !variable id: issuer       # REQUIRED: expected `iss` claim
+      # Optional (uncomment as needed)
+      - !variable id: audience         # expected `aud`
+      - !variable id: token-app-property  # claim that determines app identity, e.g., "sub"
+      - !variable id: identity-path       # base policy path for created hosts (if using host-per-claim pattern)
+
+      # Who can authenticate against this webservice
+      - !group
+        id: consumers
+        annotations:
+          description: "Roles allowed to authenticate with authn-jwt/n8n"
+      - !permit
+        role: !group consumers
+        privileges: [ read, authenticate ]
+        resource: !webservice
+
