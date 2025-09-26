@@ -1,5 +1,26 @@
-# n8n-conjur-jwt-demo
-Securing credentials of n8n by CyberArk Conjur without secrets zero using authn-jwt
+# n8n-conjur-protectai-local_llm
+Securing local AI Agent & LLM with CyberArk Conjur & LLM Guard from ProtectAI | Palo Alto Networks
+
+# Tools
+## LLM Guard
+https://github.com/protectai/llm-guard
+LLM Guard by Protect AI is a comprehensive tool designed to fortify the security of Large Language Models (LLMs).
+
+## CyberArk Conjur OSS
+https://www.conjur.org/
+A seamless open source interface to securely authenticate, control and audit non-human access across tools, applications, containers and cloud environments via robust secrets management.
+
+## n8n 
+https://github.com/n8n-io/n8n
+n8n is a workflow automation platform that gives technical teams the flexibility of code with the speed of no-code. With 400+ integrations, native AI capabilities, and a fair-code license, n8n lets you build powerful automations while maintaining full control over your data and deployments.
+
+## Ollama
+https://github.com/ollama/ollama
+Get up and running with large language models.
+
+
+
+
 
 ## Procedure
 
