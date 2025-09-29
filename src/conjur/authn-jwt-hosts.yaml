@@ -1,0 +1,12 @@
+- !policy
+  id: n8n/jwt-apps
+  body:
+    - !group
+    - !host
+      id: n8n-jwt-sync
+      annotations:
+        authn-jwt/n8n/subject: n8n-jwt-sync
+
+    - !grant
+      role: !group
+      member: !host n8n-jwt-sync

@@ -1,0 +1,26 @@
+# file: n8n-demo-policy.yml
+# 1) Secret branch: data/n8n/demo
+- !policy
+  id: data
+  body:
+  - !policy
+    id: n8n
+    body:
+    - !policy
+      id: demo
+      annotations:
+        description: "Secrets for n8n demo"
+      body:
+      - !variable
+        id: username
+        annotations:
+          description: "User Name"
+      - !variable
+        id: password
+        annotations:
+          description: "Password"
+          sensitivity: high
+      - !variable
+        id: host
+        annotations:
+          description: "URL Endpoint"

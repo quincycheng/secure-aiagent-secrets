@@ -1,0 +1,3 @@
+- !grant
+  role: !group apps
+  member: !group /data/n8n/jwt-apps

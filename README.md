@@ -24,6 +24,45 @@ Get up and running with large language models.
 
 ## Procedure
 
+bin/start.sh
+
+bin/99-cleanup.sh
+
+## n8n
+visit port 5678
+setup owner account
+
+new crednetial
+key type: PEM KEy
+Update private key and public key
+Algorithm
+RS256
+save it
+
+Workflow
+
+webhook
+Update jwks
+change to production
+
+
+payload of jwt token
+update aud, iss
+
+Sign JWT Token
+Select cred
+
+Save
+
+Activiate it
+
+New workflow
+execute sub workflow
+select n8n-jwt-sync
+secrets_id
+data/n8n/demo/host
+
+
 ### 1. Setup Servers
 #### Step 1: Get all files
 
@@ -33,7 +72,7 @@ Get up and running with large language models.
 
 #### Step 3. Master Key
 
-`printf "CONJUR_DATA_KEY=%s\n" "$(docker compose run --no-deps --rm conjur data-key generate | tail -n 1 | tr -d '\r')" > conjur.env && chmod 600 conjur.env`
+`touch data/.env.conjur && printf "CONJUR_DATA_KEY=%s\n" "$(docker compose run --no-deps --rm conjur data-key generate | tail -n 1 | tr -d '\r')" > data/.env.conjur && chmod 600 data/.env.conjur`
 
 #### Up!
 `docker compose up`
