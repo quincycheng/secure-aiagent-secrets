@@ -72,11 +72,19 @@ conjur_load_policies() {
   conjur policy load -b data -f "${CONJUR_SRC_FOLDER}/secret-access.yaml"
 
 
-  conjur variable set -i conjur/authn-jwt/n8n/audience -v "http://$(hostname -f):5678"
+  conjur variable set -i conjur/authn-jwt/n8n/audience -v "http://host.docker.internal:5678"
   conjur variable set -i conjur/authn-jwt/n8n/identity-path -v "data/n8n/jwt-apps"
-  conjur variable set -i conjur/authn-jwt/n8n/issuer -v "http://$(hostname -f):5678"
+  conjur variable set -i conjur/authn-jwt/n8n/issuer -v "http://host.docker.internal:5678"
   conjur variable set -i conjur/authn-jwt/n8n/jwks-uri -v "http://host.docker.internal:5678/webhook/jwks"
   conjur variable set -i conjur/authn-jwt/n8n/token-app-property -v "subject"
+
+
+  # Dummy Variables 
+  conjur variable set -i data/n8n/demo/password -v "ThisIsADummyPassword"
+  conjur variable set -i data/n8n/demo/host -v "ThisIsADummyHost"
+  conjur variable set -i data/n8n/demo/username -v "ThisIsADummyUsername"
+
+
 }
 
 conjur_logout() {
