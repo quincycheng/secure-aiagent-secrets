@@ -28,4 +28,4 @@ CONJUR_ENV_FILE="${DATA_DIR}/.env.conjur"
 #  n8n import:credentials --input /home/node/import/n8n_jwt_cred.json
 
 docker compose --env-file ${DB_ENV_FILE} --env-file ${N8N_ENV_FILE}  --env-file ${CONJUR_ENV_FILE} exec n8n \
-  n8n import:workflow --input /home/node/import/n8n_jwt_sync.json  
+  n8n import:workflow --input /home/node/import/n8n-jwt-sync.json  

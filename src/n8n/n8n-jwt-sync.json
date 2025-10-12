@@ -1,0 +1,563 @@
+{
+  "name": "n8n-jwt-sync",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "\nconst payload = {\n  \n  iat: Math.floor(Date.now() / 1000),\n  exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour expiry\n  aud: \"http://host.docker.internal:5678\",\n  kid: \"conjur-jwt-key\",\n  iss: \"http://host.docker.internal:5678\",\n  sub: $workflow.id,\n  subject: $workflow.name,\n  name: $workflow.name\n\n};\n\n\nreturn [{ json: {  payload } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        80
+      ],
+      "id": "04e64505-9c6f-4f06-9f18-98d37d9778fd",
+      "name": "Payload of JWT Token"
+    },
+    {
+      "parameters": {
+        "useJson": true,
+        "claimsJson": "={{ $json.payload.toJsonString() }}\n",
+        "options": {
+          "kid": "conjur-jwt-key"
+        }
+      },
+      "type": "n8n-nodes-base.jwt",
+      "typeVersion": 1,
+      "position": [
+        624,
+        80
+      ],
+      "id": "e5084395-8349-4012-92c4-13ce488777d4",
+      "name": "Sign JWT Token",
+      "credentials": {
+        "jwtAuth": {
+          "id": "zJJkw1J5y0b7nJDp",
+          "name": "JWT Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const path  = $('When Executed by Another Workflow').last().json.secret_id ?? \"\";\nreturn { \"uri\": encodeURIComponent(  \"conjur:variable:\" + path  )};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -16
+      ],
+      "id": "6bd31e6d-81dc-4894-804a-487d899dca4e",
+      "name": "Encoded Secrets Path"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "secret_id"
+            },
+            {
+              "name": "action"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        80
+      ],
+      "id": "9c3e7027-e349-475d-a4bb-ecb97c96199a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "path": "jwks",
+        "options": {
+          "rawBody": true,
+          "responseData": "={\n  \"keys\": [\n    {\n      \"kty\": \"RSA\",\n      \"use\": \"sig\",\n      \"alg\": \"RS256\",\n      \"kid\": \"conjur-jwt-key\",\n      \"n\": \"w9zeBwiCJk6dFnX0XAgy7fJGb8g1KgH7NWR1I3fif23SBt3EWaI6lsNZaLON0dnUo3aYDAM8FIALA2apo33gkfOcdeed2o_mBcKJdDkhRLEw5YciDMe8izf454ZHnbidSD_3oSx2qWewOBfjAULjLGp79F__q9ddfDyrpf3spt_LQU2E189nQXy_V0nfnNeU_z3KnYN9bPFcYehj4M3qk0nvYefeNdEuI27lv4sz2mLgrJ7kgSo15TuoJxI6JfjHxvv79fQ73IvJLcpKTpEYWrG8xtX7SHk8IScj7U7-u9asuJN4Nr20aMIreeNbpmR41OFitnsTwxXEt8UIlIDCYQ\",\n      \"e\": \"AQAB\"\n    }\n  ]\n}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "content-type",
+                "value": "text/plain;charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        256,
+        368
+      ],
+      "id": "87a4944f-6560-45b1-abad-92c91e240460",
+      "name": "Webhook - JWKS",
+      "webhookId": "e5e0854a-a90d-4f95-af84-4e6582ee9552"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/authn-jwt/n8n/conjur/authenticate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "base64"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jwt",
+              "value": "={{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        80
+      ],
+      "id": "5716f711-7dce-4f0c-88e7-d9d4e82781fa",
+      "name": "Authn with CyberArk Conjur using JWT"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/secrets?variable_ids={{ $('Encoded Secrets Path').item.json.uri }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Token token=\"{{ $('Authn with CyberArk Conjur using JWT').item.json.data }}\""
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        -16
+      ],
+      "id": "456f93a7-ee45-4c82-816a-9478185f0fdd",
+      "name": "Get Secrets from CyberArk"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        256,
+        624
+      ],
+      "id": "7d4a9db7-8e7d-4be9-a9f8-caa7771692ac",
+      "name": "Manual Test"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ab7b4a7b-8be9-4a86-b141-ac8548efa223",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.action }}",
+                    "rightValue": "getSecret",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Secret"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "39f96e42-1b1f-41b0-86f5-3f93fc256c19",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.action }}",
+                    "rightValue": "list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "List Resource"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1120,
+        80
+      ],
+      "id": "684fee09-b3b2-4d6b-a538-a02aff625f7b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/resources",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Token token=\"{{ $('Authn with CyberArk Conjur using JWT').item.json.data }}\""
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1344,
+        176
+      ],
+      "id": "4d9ef819-17e5-4146-9463-10ae724636e4",
+      "name": "List"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4w3D0w3Hy4DxEn3g",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4w3D0w3Hy4DxEn3g",
+          "cachedResultName": "n8n-jwt-sync"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "getSecret",
+            "secret_id": "data/n8n/demo/password"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "secret_id",
+              "displayName": "secret_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        624
+      ],
+      "id": "5389f78b-c2f0-4580-ac76-ee65b5311e94",
+      "name": "Test Get Secret"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4w3D0w3Hy4DxEn3g",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4w3D0w3Hy4DxEn3g",
+          "cachedResultName": "n8n-jwt-sync"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "list"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "secret_id",
+              "displayName": "secret_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        624
+      ],
+      "id": "3bd0a951-5496-41e2-9fa1-b94455bfc854",
+      "name": "Test List Resources"
+    },
+    {
+      "parameters": {
+        "content": "## Step 1.  Create a JWT credential\n\nCreate a credential and copy the values from the generated files accordingly:\n- Key Type: *PEM Key*\n- Private Key: file content from *data/conjur/jwt/private_key.pem*\n- Private Key: file content from *data/conjur/jwt/private_key.pem*\n- Algorithm: *RS256*",
+        "height": 192,
+        "width": 720
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -240
+      ],
+      "id": "a9c0ab8f-9d7b-49ce-975c-f66a4d5978b6",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3\nUpdate Webhook value with the content from the file *data/conjur/jwt/jwk.json*\nBe sure it is set as *production*",
+        "height": 240,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        112,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "c8664b3e-ce90-4a81-8dab-c697fa1603f0",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2\nUpdate the credential of \"Sign JWT Token\" to the one created in Step 1",
+        "height": 272,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "3ce89407-0a46-47f9-89e9-9b0fb18a6def",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Step 4\nClick *Save* and *Execute Workflow* and check if it is successful ",
+        "height": 240,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        112,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "1972fa36-82ec-438e-af85-dc56122199bd",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# n8n Conjur synchronizer\n\nThis workflow is for sync secrets from CyberArk Conjur/Secrets Manager to n8n as credential\n\nGitHub: https://github.com/quincycheng/n8n-conjur-protectai-local_llm",
+        "height": 1200,
+        "width": 1696,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "278a3c84-2b0e-4815-8049-22a19b6ee562",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Payload of JWT Token": {
+      "main": [
+        [
+          {
+            "node": "Sign JWT Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sign JWT Token": {
+      "main": [
+        [
+          {
+            "node": "Authn with CyberArk Conjur using JWT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encoded Secrets Path": {
+      "main": [
+        [
+          {
+            "node": "Get Secrets from CyberArk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Payload of JWT Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authn with CyberArk Conjur using JWT": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Test": {
+      "main": [
+        [
+          {
+            "node": "Test Get Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Encoded Secrets Path",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Get Secret": {
+      "main": [
+        [
+          {
+            "node": "Test List Resources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test List Resources": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5e42b3aa-80ba-4d2c-9937-f5cdd2578e07",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ab87b0eebf65921c99cb48269d208cae51057f8a7f3b1589f73c998ba8c7645f"
+  },
+  "id": "4w3D0w3Hy4DxEn3g",
+  "tags": []
+}

@@ -22,13 +22,25 @@ Get up and running with large language models.
 
 
 
-## Procedure
+## Setup
+1. Execute `bin/start.sh` to pull and create containers
+2. Access n8n web ui at http://<FQDN>:5678, e.g. http://quincy-jetson.local:5678
+3. Answer the n8n popup to create an user account for first time access
+4. Create a JWT Credential at n8n by copying the values from the generated files accordingly:
+- Key Type: *PEM Key*
+- Private Key: file content from *data/conjur/jwt/private_key.pem*
+- Private Key: file content from *data/conjur/jwt/private_key.pem*
+- Algorithm: *RS256*
+5. Open the imported workflow named *n8n-jwt-sync* 
+6. Update the credential of "Sign JWT Token" created in previous step
+7. Update Webhook value with the content from the file *data/conjur/jwt/jwk.json*.   Be sure it is set as *production*
+8. Click *Execute Workflow* and check if n8n & conjur integeation is successful 
 
-bin/start.sh
 
-bin/99-cleanup.sh
+## Clean-up
+Execute `bin/99-cleanup.sh`
 
-## n8n
+## Access
 visit port 5678
 setup owner account
 
