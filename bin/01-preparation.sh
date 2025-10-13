@@ -25,6 +25,9 @@ DB_ENV_FILE="${DATA_DIR}/.env.postgres"
 N8N_ENV_FILE="${DATA_DIR}/.env.n8n"
 CONJUR_ENV_FILE="${DATA_DIR}/.env.conjur"
 
+LITELLM_ENV_FILE="${DATA_DIR}/.env.litellm"
+LLMGUARD_ENV_FILE="${DATA_DIR}/.env.llmguard"
+
 PASS_LEN="${PG_PASS_LEN:-32}"
 
 require_cmd() {
@@ -92,6 +95,7 @@ main() {
   yellow "Ensuring data directory exists..."
   mkdir -p "${DATA_DIR}"
   mkdir -p "${DATA_DIR}/postgres-data"
+
   #################
   # n8n
   #################
@@ -180,6 +184,41 @@ main() {
   fi
 
   green "✓ Password written to ${DB_ENV_FILE} (value redacted)."
+
+
+
+  #################
+  # LiteLLM
+  #################
+  yellow "Generating random LiteLLM password (length: ${PASS_LEN})..."
+  PW="$(generate_password)"
+  LITELLM_MASTER_KEY="sk-$(generate_password)"
+  LITELLM_SALT_KEY="sk-$(generate_password)"
+
+  yellow "Writing password to ${LITELLM_ENV_FILE} (chmod 600)..."
+  umask 177  # ensures files are created as 600 by default
+  touch "${LITELLM_ENV_FILE}"
+  chmod 600 "${LITELLM_ENV_FILE}"
+
+  # LITELLM_MASTER_KEY
+  if grep -q '^LITELLM_MASTER_KEY=' "${LITELLM_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^LITELLM_MASTER_KEY=.*/LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}/" "${LITELLM_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "LITELLM_MASTER_KEY=%s\n" "${LITELLM_MASTER_KEY}" >> "${LITELLM_ENV_FILE}"
+  fi
+
+  # LITELLM_SALT_KEY
+  if grep -q '^LITELLM_SALT_KEY=' "${LITELLM_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^LITELLM_SALT_KEY=.*/LITELLM_SALT_KEY=${LITELLM_SALT_KEY}/" "${LITELLM_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "LITELLM_SALT_KEY=%s\n" "${LITELLM_SALT_KEY}" >> "${LITELLM_ENV_FILE}"
+  fi
+
+
 
   #################
   # Conjur

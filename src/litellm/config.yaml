@@ -1,0 +1,68 @@
+model_list:
+  - model_name: "llama3.1"
+    litellm_params:
+      model: "ollama/llama3.1"
+      api_base: "http://host.docker.internal:11434"
+    model_info:
+      supports_function_calling: true
+
+  - model_name: "deepseek-r1:1.5b"
+    litellm_params:
+      model: "ollama/deepseek-r1:1.5b"
+      api_base: "http://host.docker.internal:11434"
+    model_info:
+      supports_function_calling: true
+
+  - model_name: "gemma3:4b"
+    litellm_params:
+      model: "ollama/gemma3:4b"
+      api_base: "http://host.docker.internal:11434"
+    model_info:
+      supports_function_calling: true
+
+  - model_name: "llama3.2"
+    litellm_params:
+      model: "ollama/llama3.2"
+      api_base: "http://host.docker.internal:11434"
+    model_info:
+      supports_function_calling: true
+
+# Attach guardrails (global registry in Guardrails v2)
+guardrails:
+  - guardrail_name: llmguard-pre
+    litellm_params:
+      guardrail: custom_llmguard.LLMGuardRail   # <module>.<class>
+      mode: "pre_call"                          
+      # kwargs passed to __init__
+      pi_threshold: 0.85
+      tox_threshold: 0.92
+      sensitive_threshold: 0.50
+      fail_on_injection: true
+      fail_on_secrets: true
+      default_on: true
+
+  - guardrail_name: llmguard-during
+    litellm_params:
+      guardrail: custom_llmguard.LLMGuardRail
+      mode: "during_call"                       
+      pi_threshold: 0.85
+      fail_on_injection: true
+      fail_on_secrets: true
+
+  - guardrail_name: llmguard-post
+    litellm_params:
+      guardrail: custom_llmguard.LLMGuardRail
+      mode: "post_call"                        
+      tox_threshold: 0.92
+      sensitive_threshold: 0.50
+      default_on: true
+
+general_settings:
+  # Optional: force guardrails to run even if client doesn't pass `guardrails` array
+  # We already set default_on for pre & post. See Guardrails Quick Start for behavior.
+  # https://docs.litellm.ai/docs/proxy/guardrails/quick_start
+  # (add any other general settings here)
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 40 

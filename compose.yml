@@ -113,6 +113,69 @@ services:
       database:
         condition: service_healthy
 
+
+
+  llm-guard:
+    build:
+      context: ./src/llm-guard
+#    image: llm-guard-api:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    runtime: nvidia
+    environment:
+      USE_GPU: true
+      LLMGUARD_API_TOKEN: ${LLMGUARD_API_TOKEN:-}
+      TRANSFORMERS_CACHE: /root/.cache/huggingface
+      HF_HOME: /root/.cache/huggingface
+      TRANSFORMERS_NO_META_DEVICE: "1"
+    ports:
+      - "4321:4321"    # expose for local dev; omit in prod if only intra-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4321/healthz"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    depends_on:
+      llm-guard:
+        condition: service_healthy
+    environment:
+      - LLMGUARD_API_BASE=http://host.docker.internal:4321
+      - LLMGUARD_API_TOKEN=${LLMGUARD_API_TOKEN:-}
+      - OLLAMA_API_BASE=http://host.docker.internal:11434
+    env_file: 
+      - ./data/.env.litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./src/litellm/config.yaml:/app/config.yaml:ro
+      - ./src/litellm/custom_llmguard.py:/app/custom_llmguard.py:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+#  og_litellm:
+#    network_mode: host
+#    image: ghcr.io/berriai/litellm:main-stable
+#    build:
+#      context: src/litellm/
+#      dockerfile: Dockerfile
+#    image: litellm-llmguard:latest
+#    ports:
+#      - "4000:4000"
+#    volumes:
+#      - ./src/litellm/:/config/
+#    command: [  "--port","4000", "--config", "/config/config.yaml"]
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+#    environment:
+#      - LITELLM_LOG=DEBUG
+
 volumes:
   n8n_data:
   traefik_data:
