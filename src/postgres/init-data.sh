@@ -2,6 +2,7 @@
 set -e;
 
 
+# n8n database init script
 if [ -n "${POSTGRES_NON_ROOT_USER:-}" ] && [ -n "${POSTGRES_NON_ROOT_PASSWORD:-}" ]; then
 	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
 		CREATE USER ${POSTGRES_NON_ROOT_USER} WITH PASSWORD '${POSTGRES_NON_ROOT_PASSWORD}';
@@ -9,5 +10,17 @@ if [ -n "${POSTGRES_NON_ROOT_USER:-}" ] && [ -n "${POSTGRES_NON_ROOT_PASSWORD:-}
 		GRANT CREATE ON SCHEMA public TO ${POSTGRES_NON_ROOT_USER};
 	EOSQL
 else
-	echo "SETUP INFO: No Environment variables given!"
+	echo "N8N INFO: No Environment variables given!"
+fi
+
+# LiteLLM database init script
+if [ -n "${POSTGRES_LITELLM_USER:-}" ] && [ -n "${POSTGRES_LITELLM_PASSWORD:-}" ]; then
+	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+		CREATE DATABASE ${POSTGRES_LITELLM_DB};
+		CREATE USER ${POSTGRES_LITELLM_USER} WITH PASSWORD '${POSTGRES_LITELLM_PASSWORD}';
+		GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_LITELLM_DB} TO ${POSTGRES_LITELLM_USER};
+		GRANT CREATE ON SCHEMA public TO ${POSTGRES_LITELLM_USER};
+	EOSQL
+else
+	echo "LiteLLM INFO: No Environment variables given!"
 fi

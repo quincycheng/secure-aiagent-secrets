@@ -126,12 +126,46 @@ main() {
   POSTGRES_NON_ROOT_PASSWORD="$(generate_password)"
   POSTGRES_NON_ROOT_USER="n8n_service"
 
+  POSTGRES_LITELLM_PASSWORD="$(generate_password)"
+  POSTGRES_LITELLM_USER="litellm_service"
+  POSTGRES_LITELLM_DB="litellm"
+
   yellow "Writing password to ${DB_ENV_FILE} (chmod 600)..."
   umask 177  # ensures files are created as 600 by default
   touch "${DB_ENV_FILE}"
   chmod 600 "${DB_ENV_FILE}"
   POSTGRES_USER=n8n_user
   POSTGRES_DB=n8n
+
+  # POSTGRES_LITELLM_PASSWORD
+  if grep -q '^POSTGRES_LITELLM_PASSWORD=' "${DB_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^POSTGRES_LITELLM_PASSWORD=.*/POSTGRES_LITELLM_PASSWORD=${POSTGRES_LITELLM_PASSWORD}/" "${DB_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    #{ tail -c1 "${DB_ENV_FILE}" | read -r _ || echo >> "${DB_ENV_FILE}"; } 2>/dev/null || true
+    printf "POSTGRES_LITELLM_PASSWORD=%s\n" "${POSTGRES_LITELLM_PASSWORD}" >> "${DB_ENV_FILE}"
+  fi
+
+  # POSTGRES_LITELLM_USER
+  if grep -q '^POSTGRES_LITELLM_USER=' "${DB_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^POSTGRES_LITELLM_USER=.*/POSTGRES_LITELLM_USER=${POSTGRES_LITELLM_USER}/" "${DB_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "POSTGRES_LITELLM_USER=%s\n" "${POSTGRES_LITELLM_USER}" >> "${DB_ENV_FILE}"
+  fi
+
+  # POSTGRES_LITELLM_DB
+  if grep -q '^POSTGRES_LITELLM_DB=' "${DB_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^POSTGRES_LITELLM_DB=.*/POSTGRES_LITELLM_DB=${POSTGRES_LITELLM_DB}/" "${DB_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "POSTGRES_LITELLM_DB=%s\n" "${POSTGRES_LITELLM_DB}" >> "${DB_ENV_FILE}"
+  fi
+
+
 
   # POSTGRES_PASSWORD
   if grep -q '^POSTGRES_PASSWORD=' "${DB_ENV_FILE}"; then
@@ -194,6 +228,10 @@ main() {
   PW="$(generate_password)"
   LITELLM_MASTER_KEY="sk-$(generate_password)"
   LITELLM_SALT_KEY="sk-$(generate_password)"
+  PROXY_ADMIN_ID=admin
+  UI_USERNAME=admin
+  UI_PASSWORD=${LITELLM_MASTER_KEY}
+
 
   yellow "Writing password to ${LITELLM_ENV_FILE} (chmod 600)..."
   umask 177  # ensures files are created as 600 by default
@@ -219,6 +257,31 @@ main() {
   fi
 
 
+  # PROXY_ADMIN_ID
+  if grep -q '^PROXY_ADMIN_ID=' "${LITELLM_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^PROXY_ADMIN_ID=.*/PROXY_ADMIN_ID=${PROXY_ADMIN_ID}/" "${LITELLM_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "PROXY_ADMIN_ID=%s\n" "${PROXY_ADMIN_ID}" >> "${LITELLM_ENV_FILE}"
+  fi
+
+  # UI_USERNAME
+  if grep -q '^UI_USERNAME=' "${LITELLM_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^UI_USERNAME=.*/UI_USERNAME=${UI_USERNAME}/" "${LITELLM_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "UI_USERNAME=%s\n" "${UI_USERNAME}" >> "${LITELLM_ENV_FILE}"
+  fi
+  # UI_PASSWORD
+  if grep -q '^UI_PASSWORD=' "${LITELLM_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^UI_PASSWORD=.*/UI_PASSWORD=${UI_PASSWORD}/" "${LITELLM_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "UI_PASSWORD=%s\n" "${UI_PASSWORD}" >> "${LITELLM_ENV_FILE}"
+  fi
 
   #################
   # Conjur

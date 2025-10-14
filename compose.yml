@@ -26,7 +26,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/postgres
       CONJUR_AUTHENTICATORS: authn-jwt/n8n,authn
       CONJUR_TELEMETRY_ENABLED: 'false'
-      CONJUR_LOG_LEVEL: debug
+      # CONJUR_LOG_LEVEL: debug
     env_file: 
       - ./data/.env.conjur
       - ./data/.env.postgres
@@ -128,7 +128,7 @@ services:
       TRANSFORMERS_NO_META_DEVICE: "1"
       LLMGUARD_CONFIG_PATH: "/config/scanner_config.yaml"
     volumes:
-      - ./src/llm-guard/scanner_config.yaml:/config/scanner_config.yaml:ro
+      - ./src/llm-guard/config.yaml:/config/scanner_config.yaml:ro
     ports:
       - "4321:4321"    # expose for local dev; omit in prod if only intra-network
     healthcheck:
@@ -138,7 +138,7 @@ services:
       retries: 10
 
   litellm:
-    image: ghcr.io/berriai/litellm-database:main-stable
+    image: ghcr.io/berriai/litellm:main-stable
     depends_on:
       llm-guard:
         condition: service_healthy
@@ -146,16 +146,16 @@ services:
       - LLMGUARD_API_BASE=http://host.docker.internal:4321
       - LLMGUARD_API_TOKEN=${LLMGUARD_API_TOKEN:-}
       - OLLAMA_API_BASE=http://host.docker.internal:11434
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/postgres
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/${POSTGRES_LITELLM_DB}
     env_file: 
-      - ./data/.env.litellm
       - ./data/.env.postgres
+      - ./data/.env.litellm
     ports:
       - "4000:4000"
     volumes:
       - ./src/litellm/config.yaml:/app/config.yaml:ro
       - ./src/litellm/custom_llmguard.py:/app/custom_llmguard.py:ro
-    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug"]
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug", "--use_prisma_db_push"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

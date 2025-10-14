@@ -52,7 +52,7 @@ LLM-Guard container as LiteLLM custom guardrails
 | Conjur            | 8080  | Container      | Generated during installation: `data/conjur/admin_data` |
 | LiteLLM           | 4000  | Container      | Generated during installation: `data/.env.litellm`      |
 | llm-guard-litellm | 4321  | Container      | Generated during installation: `data/.env.llm-guard`    |
-| PostgreSQL        | 5432  | Container      | Generated during installation: `data/.env.llm-postgres`    |
+| PostgreSQL        | 5432  | Container      | Generated during installation: `data/.env.postgres`    |
 
 ## Clean-up
 Execute `bin/99-cleanup.sh`

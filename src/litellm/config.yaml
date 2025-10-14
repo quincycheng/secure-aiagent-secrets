@@ -67,5 +67,8 @@ litellm_settings:
   drop_params: false
   request_timeout: 40
   callbacks: ["detect_prompt_injection"]
-  allow_requests_on_db_unavailable: True
+#  allow_requests_on_db_unavailable: True
 
+users:
+  - user_id: "admin"
+    role: "admin"
