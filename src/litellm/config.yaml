@@ -1,7 +1,7 @@
 model_list:
   - model_name: "llama3.1"
     litellm_params:
-      model: "ollama/llama3.1"
+      model: "ollama_chat/llama3.1"
       api_base: "http://host.docker.internal:11434"
     model_info:
       supports_function_calling: true
@@ -64,7 +64,8 @@ general_settings:
   # (add any other general settings here)
 
 litellm_settings:
-  drop_params: true
+  drop_params: false
   request_timeout: 40
   callbacks: ["detect_prompt_injection"]
+  allow_requests_on_db_unavailable: True
 

@@ -113,12 +113,8 @@ services:
       database:
         condition: service_healthy
 
-
-
   llm-guard:
-    build:
-      context: ./src/llm-guard
-#    image: llm-guard-api:latest
+    image: quincycheng/llm-guard-litellm:latest
     deploy:
       resources:
         reservations:
@@ -128,7 +124,6 @@ services:
     environment:
       USE_GPU: true
       LLMGUARD_API_TOKEN: ${LLMGUARD_API_TOKEN:-}
-#      TRANSFORMERS_CACHE: /root/.cache/huggingface
       HF_HOME: /root/.cache/huggingface
       TRANSFORMERS_NO_META_DEVICE: "1"
       LLMGUARD_CONFIG_PATH: "/config/scanner_config.yaml"
@@ -143,7 +138,7 @@ services:
       retries: 10
 
   litellm:
-    image: ghcr.io/berriai/litellm:main-stable
+    image: ghcr.io/berriai/litellm-database:main-stable
     depends_on:
       llm-guard:
         condition: service_healthy
@@ -151,8 +146,10 @@ services:
       - LLMGUARD_API_BASE=http://host.docker.internal:4321
       - LLMGUARD_API_TOKEN=${LLMGUARD_API_TOKEN:-}
       - OLLAMA_API_BASE=http://host.docker.internal:11434
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database/postgres
     env_file: 
       - ./data/.env.litellm
+      - ./data/.env.postgres
     ports:
       - "4000:4000"
     volumes:
@@ -161,23 +158,6 @@ services:
     command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-#  og_litellm:
-#    network_mode: host
-#    image: ghcr.io/berriai/litellm:main-stable
-#    build:
-#      context: src/litellm/
-#      dockerfile: Dockerfile
-#    image: litellm-llmguard:latest
-#    ports:
-#      - "4000:4000"
-#    volumes:
-#      - ./src/litellm/:/config/
-#    command: [  "--port","4000", "--config", "/config/config.yaml"]
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
-#    environment:
-#      - LITELLM_LOG=DEBUG
 
 volumes:
   n8n_data:
