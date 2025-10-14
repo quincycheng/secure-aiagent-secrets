@@ -128,9 +128,12 @@ services:
     environment:
       USE_GPU: true
       LLMGUARD_API_TOKEN: ${LLMGUARD_API_TOKEN:-}
-      TRANSFORMERS_CACHE: /root/.cache/huggingface
+#      TRANSFORMERS_CACHE: /root/.cache/huggingface
       HF_HOME: /root/.cache/huggingface
       TRANSFORMERS_NO_META_DEVICE: "1"
+      LLMGUARD_CONFIG_PATH: "/config/scanner_config.yaml"
+    volumes:
+      - ./src/llm-guard/scanner_config.yaml:/config/scanner_config.yaml:ro
     ports:
       - "4321:4321"    # expose for local dev; omit in prod if only intra-network
     healthcheck:

@@ -65,4 +65,6 @@ general_settings:
 
 litellm_settings:
   drop_params: true
-  request_timeout: 40 
+  request_timeout: 40
+  callbacks: ["detect_prompt_injection"]
+

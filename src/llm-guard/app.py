@@ -1,16 +1,17 @@
+
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Optional, List, Any
 import os
-import torch
+import yaml
+import traceback
 
 from llm_guard import input_scanners, output_scanners
 from llm_guard.vault import Vault
 
-# Determine device: GPU if available, else CPU
-#DEVICE = os.environ.get("LLMGUARD_DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
-#DEVICE = "cuda"
-#print(f"[Init] Using device: {DEVICE}")
+CONFIG_PATH = os.environ.get("LLMGUARD_CONFIG_PATH", "scanner_config.yaml")
+with open(CONFIG_PATH, "r") as f:
+    SCANNER_CONFIG = yaml.safe_load(f)
 
 app = FastAPI(title="llm-guard-api", version="1.0.0")
 
@@ -31,7 +32,6 @@ def check_auth(header: Optional[str]):
 class PromptScanReq(BaseModel):
     text: str
     vault_id: Optional[str] = "default"
-    pi_threshold: float = 0.85
 
 class PromptScanResp(BaseModel):
     sanitized_text: str
@@ -42,8 +42,6 @@ class PromptScanResp(BaseModel):
 class OutputScanReq(BaseModel):
     text: str
     vault_id: Optional[str] = "default"
-    tox_threshold: float = 0.92
-    sensitive_threshold: float = 0.50
 
 class OutputScanResp(BaseModel):
     final_text: str
@@ -62,41 +60,41 @@ def scan_prompt(req: PromptScanReq, x_llmguard_token: Optional[str] = Header(def
     check_auth(x_llmguard_token)
     vault = get_vault(req.vault_id)
 
-    try:
-        print("[PromptScan] Initializing scanners")
-        s_prompt_injection = input_scanners.get_scanner_by_name(
-            "PromptInjection", {"threshold": req.pi_threshold}
-        )
-        s_secrets = input_scanners.get_scanner_by_name("Secrets", {})
-        s_anonymize = input_scanners.get_scanner_by_name("Anonymize", {"vault": vault})
-    except Exception as e:
-        print(f"[PromptScan] Scanner init error: {e}")
-        raise HTTPException(status_code=500, detail=f"Scanner initialization failed: {str(e)}")
-
+    scanners = {}
     reasons, scores = [], {}
     text = req.text
 
     try:
-        print("[PromptScan] Running PromptInjection scan")
-        text, ok_pi, sc_pi = s_prompt_injection.scan(text)
-        scores["prompt_injection"] = sc_pi
-        if not ok_pi:
-            reasons.append(f"prompt_injection(score={sc_pi:.2f})")
+        for name in ["PromptInjection", "Secrets", "Anonymize"]:
+            cfg = SCANNER_CONFIG["input_scanners"].get(name, {})
+            if cfg.get("enabled", True):
+                params = cfg.get("params", {})
+                if "vault" in params:
+                    params["vault"] = vault
+                scanners[name] = input_scanners.get_scanner_by_name(name, params)
 
-        print("[PromptScan] Running Secrets scan")
-        text, ok_sec, sc_sec = s_secrets.scan(text)
-        scores["secrets"] = sc_sec
-        if not ok_sec:
-            reasons.append(f"secrets(score={sc_sec:.2f})")
+        if "PromptInjection" in scanners:
+            text, ok_pi, sc_pi = scanners["PromptInjection"].scan(text)
+            scores["prompt_injection"] = sc_pi
+            if not ok_pi:
+                reasons.append(f"prompt_injection(score={sc_pi:.2f})")
 
-        print("[PromptScan] Running Anonymize scan")
-        text, _, _ = s_anonymize.scan(text)
+        if "Secrets" in scanners:
+            text, ok_sec, sc_sec = scanners["Secrets"].scan(text)
+            scores["secrets"] = sc_sec
+            if not ok_sec:
+                reasons.append(f"secrets(score={sc_sec:.2f})")
+
+        if "Anonymize" in scanners:
+            text, _, _ = scanners["Anonymize"].scan(text)
+
     except Exception as e:
-        print(f"[PromptScan] Scanning error: {e}")
-        raise HTTPException(status_code=500, detail=f"Scanning failed: {str(e)}")
+        print(f"[PromptScan] Error: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
+    print(f"[PromptScan] Sanitized text: {text}")
     valid = len(reasons) == 0
-    print(f"[PromptScan] Completed. Valid: {valid}, Reasons: {reasons}")
     return PromptScanResp(sanitized_text=text, valid=valid, reasons=reasons, scores=scores)
 
 @app.post("/scan/output", response_model=OutputScanResp)
@@ -105,47 +103,61 @@ def scan_output(req: OutputScanReq, x_llmguard_token: Optional[str] = Header(def
     check_auth(x_llmguard_token)
     vault = get_vault(req.vault_id)
 
-    try:
-        print("[OutputScan] Initializing scanners")
-        s_toxic = output_scanners.get_scanner_by_name(
-            "Toxicity", {"threshold": req.tox_threshold}
-        )
-        s_malurls = output_scanners.get_scanner_by_name("MaliciousURLs", {})
-        s_sensitive = output_scanners.get_scanner_by_name(
-            "Sensitive", {"threshold": req.sensitive_threshold}
-        )
-        s_deanon = output_scanners.get_scanner_by_name("Deanonymize", {"vault": vault})
-    except Exception as e:
-        print(f"[OutputScan] Scanner init error: {e}")
-        raise HTTPException(status_code=500, detail=f"Scanner initialization failed: {str(e)}")
-
+    scanners = {}
     reasons, scores = [], {}
     text = req.text
 
     try:
-        print("[OutputScan] Running Toxicity scan")
-        _, ok_tox, sc_tox = s_toxic.scan(text, text)
-        scores["toxicity"] = sc_tox
-        if not ok_tox:
-            reasons.append(f"toxicity(score={sc_tox:.2f})")
+        for name in ["Toxicity", "MaliciousURLs", "Sensitive", "Deanonymize"]:
+            cfg = SCANNER_CONFIG["output_scanners"].get(name, {})
+            if cfg.get("enabled", True):
+                params = cfg.get("params", {})
+                if "vault" in params:
+                    params["vault"] = vault
+                scanners[name] = output_scanners.get_scanner_by_name(name, params)
 
-        print("[OutputScan] Running MaliciousURLs scan")
-        _, ok_url, sc_url = s_malurls.scan(output=text)
-        scores["malicious_urls"] = sc_url
-        if not ok_url:
-            reasons.append(f"malicious_urls(score={sc_url:.2f})")
+        try:
+            if "Toxicity" in scanners:
+                _, ok_tox, sc_tox = scanners["Toxicity"].scan(text, text)
+                scores["toxicity"] = sc_tox
+                if not ok_tox:
+                    reasons.append(f"toxicity(score={sc_tox:.2f})")
+        except Exception as e:
+            print(f"[Toxicity] Scanner failed: {e}")
+            traceback.print_exc()
 
-        print("[OutputScan] Running Sensitive scan")
-        _, ok_sens, sc_sens = s_sensitive.scan(output=text)
-        scores["sensitive"] = sc_sens
-        if not ok_sens:
-            reasons.append(f"sensitive(score={sc_sens:.2f})")
+        try:
+            if "MaliciousURLs" in scanners:
+                _, ok_url, sc_url = scanners["MaliciousURLs"].scan(text)
+                scores["malicious_urls"] = sc_url
+                if not ok_url:
+                    reasons.append(f"malicious_urls(score={sc_url:.2f})")
+        except Exception as e:
+            print(f"[MaliciousURLs] Scanner failed: {e}")
+            traceback.print_exc()
 
-        print("[OutputScan] Running Deanonymize scan")
-        text, _, _ = s_deanon.scan(output=text)
+        try:
+            if "Sensitive" in scanners:
+                _, ok_sens, sc_sens = scanners["Sensitive"].scan(text)
+                scores["sensitive"] = sc_sens
+                if not ok_sens:
+                    reasons.append(f"sensitive(score={sc_sens:.2f})")
+        except Exception as e:
+            print(f"[Sensitive] Scanner failed: {e}")
+            traceback.print_exc()
+
+        try:
+            if "Deanonymize" in scanners:
+                text, _, _ = scanners["Deanonymize"].scan(text)
+        except Exception as e:
+            print(f"[Deanonymize] Scanner failed: {e}")
+            traceback.print_exc()
+
     except Exception as e:
-        print(f"[OutputScan] Scanning error: {e}")
-        raise HTTPException(status_code=500, detail=f"Scanning failed: {str(e)}")
+        print(f"[OutputScan] Error: {e}")
+        traceback.print_exc()
+        return OutputScanResp(final_text=text, valid=False, reasons=["Internal error"], scores=scores)
 
+    print(f"[OutputScan] Final output text: {text}")
     valid = len(reasons) == 0
-    print(f"[OutputScan] Completed. Valid: {valid}, Reasons: {reasons}")
+    return OutputScanResp(final_text=text, valid=valid, reasons=reasons, scores=scores)
