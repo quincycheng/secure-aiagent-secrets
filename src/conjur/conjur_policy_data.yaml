@@ -24,3 +24,26 @@
         id: host
         annotations:
           description: "URL Endpoint"
+
+
+    - !policy
+      id: litellm
+      annotations:
+        description: "Secrets for LiteLLM"
+      body:
+      - !variable
+        id: password
+        annotations:
+          description: "Password"
+          sensitivity: high
+
+    - !policy
+      id: database
+      annotations:
+        description: "Secrets for n8n database"
+      body:
+      - !variable
+        id: password
+        annotations:
+          description: "Password"
+          sensitivity: high

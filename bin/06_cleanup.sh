@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+# ---------- resolve project paths relative to this script ----------
+# This handles symlinks so we get the real script location.
 SCRIPT_SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SCRIPT_SOURCE" ]; do
   SCRIPT_DIR="$( cd -P "$( dirname "$SCRIPT_SOURCE" )" >/dev/null 2>&1 && pwd )"
@@ -8,10 +11,8 @@ while [ -h "$SCRIPT_SOURCE" ]; do
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SCRIPT_SOURCE" )" >/dev/null 2>&1 && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
-BIN_DIR="${PROJECT_ROOT}/bin"
+DATA_DIR="${PROJECT_ROOT}/data"
 
-${BIN_DIR}/01-preparation.sh && \
-${BIN_DIR}/02-start-services.sh  && \
-${BIN_DIR}/03-generate-jwks.sh  && \
-${BIN_DIR}/04-import-n8n-workflow.sh  \
-${BIN_DIR}/05-cleanup.sh  
+
+rm -rf "${DATA_DIR}/conjur/jwt"
+rm -rf "${DATA_DIR}/n8n"

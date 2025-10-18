@@ -95,6 +95,7 @@ main() {
   yellow "Ensuring data directory exists..."
   mkdir -p "${DATA_DIR}"
   mkdir -p "${DATA_DIR}/postgres-data"
+  mkdir -p "${DATA_DIR}/n8n"
 
   #################
   # n8n
@@ -129,6 +130,8 @@ main() {
   POSTGRES_LITELLM_PASSWORD="$(generate_password)"
   POSTGRES_LITELLM_USER="litellm_service"
   POSTGRES_LITELLM_DB="litellm"
+
+  POSTGRES_CHAT_MEMORY_DB="n8n_chat_memory"
 
   yellow "Writing password to ${DB_ENV_FILE} (chmod 600)..."
   umask 177  # ensures files are created as 600 by default
@@ -165,7 +168,14 @@ main() {
     printf "POSTGRES_LITELLM_DB=%s\n" "${POSTGRES_LITELLM_DB}" >> "${DB_ENV_FILE}"
   fi
 
-
+  # POSTGRES_CHAT_MEMORY_DB
+  if grep -q '^POSTGRES_CHAT_MEMORY_DB=' "${DB_ENV_FILE}"; then
+    # Update existing line (in place)
+    sed -i "s/^POSTGRES_CHAT_MEMORY_DB=.*/POSTGRES_CHAT_MEMORY_DB=${POSTGRES_CHAT_MEMORY_DB}/" "${DB_ENV_FILE}"
+  else
+    # Append new line (ensure newline at end)
+    printf "POSTGRES_CHAT_MEMORY_DB=%s\n" "${POSTGRES_CHAT_MEMORY_DB}" >> "${DB_ENV_FILE}"
+  fi
 
   # POSTGRES_PASSWORD
   if grep -q '^POSTGRES_PASSWORD=' "${DB_ENV_FILE}"; then

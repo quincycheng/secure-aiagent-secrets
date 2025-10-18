@@ -25,6 +25,7 @@ DB_ENV_FILE="${DATA_DIR}/.env.postgres"
 N8N_ENV_FILE="${DATA_DIR}/.env.n8n"
 CONJUR_ENV_FILE="${DATA_DIR}/.env.conjur"
 CONJUR_SRC_FOLDER="${PROJECT_ROOT}/src/conjur"
+LITELLM_ENV_FILE="${DATA_DIR}/.env.litellm"
 
 conjur_check_service() {
  yellow "Check if Conjur is up..."
@@ -84,6 +85,12 @@ conjur_load_policies() {
   conjur variable set -i data/n8n/demo/host -v "ThisIsADummyHost"
   conjur variable set -i data/n8n/demo/username -v "ThisIsADummyUsername"
 
+
+  # n8n Variables
+  source "${LITELLM_ENV_FILE}"
+  source "${DB_ENV_FILE}"
+  conjur variable set -i data/n8n/database/password -v "${POSTGRES_NON_ROOT_PASSWORD}"
+  conjur variable set -i data/n8n/litellm/password -v "${LITELLM_MASTER_KEY}"
 
 }
 

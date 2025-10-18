@@ -87,11 +87,11 @@ services:
       - ./data/.env.postgres
       - ./data/.env.n8n
     environment:
-      - N8N_HOST=${DOMAIN_NAME}
+#      - N8N_HOST=${DOMAIN_NAME}
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=production
-      - WEBHOOK_URL=http://${DOMAIN_NAME}:5678/
+#      - WEBHOOK_URL=http://${DOMAIN_NAME}:5678/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
       - N8N_SECURE_COOKIE=false
       - CREDENTIALS_OVERWRITE_ENDPOINT=send-credentials
@@ -103,15 +103,20 @@ services:
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_RUNNERS_ENABLED=true
-      - N8N_BLOCK_ENV_ACCESS_IN_NODE=true
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
     volumes:
       - n8n_data:/home/node/.n8n
-      - ./src/n8n:/home/node/import
+      - ./data/n8n:/home/node/import
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4000/healthz"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
   llm-guard:
     image: quincycheng/llm-guard-litellm:latest
@@ -155,7 +160,8 @@ services:
     volumes:
       - ./src/litellm/config.yaml:/app/config.yaml:ro
       - ./src/litellm/custom_llmguard.py:/app/custom_llmguard.py:ro
-    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug", "--use_prisma_db_push"]
+#    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug", "--use_prisma_db_push"]
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

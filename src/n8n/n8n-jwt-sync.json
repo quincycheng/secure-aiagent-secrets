@@ -8,8 +8,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        368,
-        80
+        400,
+        1056
       ],
       "id": "04e64505-9c6f-4f06-9f18-98d37d9778fd",
       "name": "Payload of JWT Token"
@@ -25,30 +25,17 @@
       "type": "n8n-nodes-base.jwt",
       "typeVersion": 1,
       "position": [
-        624,
-        80
+        576,
+        1056
       ],
       "id": "e5084395-8349-4012-92c4-13ce488777d4",
       "name": "Sign JWT Token",
       "credentials": {
         "jwtAuth": {
           "id": "zJJkw1J5y0b7nJDp",
-          "name": "JWT Auth account"
+          "name": "Conjur JWT Authn"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const path  = $('When Executed by Another Workflow').last().json.secret_id ?? \"\";\nreturn { \"uri\": encodeURIComponent(  \"conjur:variable:\" + path  )};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1344,
-        -16
-      ],
-      "id": "6bd31e6d-81dc-4894-804a-487d899dca4e",
-      "name": "Encoded Secrets Path"
     },
     {
       "parameters": {
@@ -59,6 +46,12 @@
             },
             {
               "name": "action"
+            },
+            {
+              "name": "cred_name"
+            },
+            {
+              "name": "cred_path"
             }
           ]
         }
@@ -66,8 +59,8 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        144,
-        80
+        208,
+        1056
       ],
       "id": "9c3e7027-e349-475d-a4bb-ecb97c96199a",
       "name": "When Executed by Another Workflow"
@@ -77,8 +70,8 @@
         "path": "jwks",
         "options": {
           "rawBody": true,
-          "responseData": "={\n  \"keys\": [\n    {\n      \"kty\": \"RSA\",\n      \"use\": \"sig\",\n      \"alg\": \"RS256\",\n      \"kid\": \"conjur-jwt-key\",\n      \"n\": \"w9zeBwiCJk6dFnX0XAgy7fJGb8g1KgH7NWR1I3fif23SBt3EWaI6lsNZaLON0dnUo3aYDAM8FIALA2apo33gkfOcdeed2o_mBcKJdDkhRLEw5YciDMe8izf454ZHnbidSD_3oSx2qWewOBfjAULjLGp79F__q9ddfDyrpf3spt_LQU2E189nQXy_V0nfnNeU_z3KnYN9bPFcYehj4M3qk0nvYefeNdEuI27lv4sz2mLgrJ7kgSo15TuoJxI6JfjHxvv79fQ73IvJLcpKTpEYWrG8xtX7SHk8IScj7U7-u9asuJN4Nr20aMIreeNbpmR41OFitnsTwxXEt8UIlIDCYQ\",\n      \"e\": \"AQAB\"\n    }\n  ]\n}",
-          "responseHeaders": {
+          "responseData": <JWKS>,
+           "responseHeaders": {
             "entries": [
               {
                 "name": "content-type",
@@ -91,155 +84,23 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        256,
-        368
+        928,
+        1072
       ],
       "id": "87a4944f-6560-45b1-abad-92c91e240460",
       "name": "Webhook - JWKS",
       "webhookId": "e5e0854a-a90d-4f95-af84-4e6582ee9552"
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "http://host.docker.internal:8080/authn-jwt/n8n/conjur/authenticate",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/x-www-form-urlencoded"
-            },
-            {
-              "name": "Accept-Encoding",
-              "value": "base64"
-            }
-          ]
-        },
-        "sendBody": true,
-        "contentType": "form-urlencoded",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "jwt",
-              "value": "={{ $json.token }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        896,
-        80
-      ],
-      "id": "5716f711-7dce-4f0c-88e7-d9d4e82781fa",
-      "name": "Authn with CyberArk Conjur using JWT"
-    },
-    {
-      "parameters": {
-        "url": "=http://host.docker.internal:8080/secrets?variable_ids={{ $('Encoded Secrets Path').item.json.uri }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Token token=\"{{ $('Authn with CyberArk Conjur using JWT').item.json.data }}\""
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1568,
-        -16
-      ],
-      "id": "456f93a7-ee45-4c82-816a-9478185f0fdd",
-      "name": "Get Secrets from CyberArk"
-    },
-    {
       "parameters": {},
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        256,
-        624
+        1904,
+        576
       ],
       "id": "7d4a9db7-8e7d-4be9-a9f8-caa7771692ac",
       "name": "Manual Test"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "ab7b4a7b-8be9-4a86-b141-ac8548efa223",
-                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.action }}",
-                    "rightValue": "getSecret",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Get Secret"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "39f96e42-1b1f-41b0-86f5-3f93fc256c19",
-                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.action }}",
-                    "rightValue": "list",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "List Resource"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        1120,
-        80
-      ],
-      "id": "684fee09-b3b2-4d6b-a538-a02aff625f7b",
-      "name": "Switch"
     },
     {
       "parameters": {
@@ -262,8 +123,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1344,
-        176
+        1280,
+        1088
       ],
       "id": "4d9ef819-17e5-4146-9463-10ae724636e4",
       "name": "List"
@@ -314,8 +175,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        720,
-        624
+        2064,
+        768
       ],
       "id": "5389f78b-c2f0-4580-ac76-ee65b5311e94",
       "name": "Test Get Secret"
@@ -332,7 +193,8 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "action": "list"
+            "action": "List",
+            "secret_id": "="
           },
           "matchingColumns": [],
           "schema": [
@@ -363,67 +225,24 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        928,
-        624
+        1904,
+        768
       ],
       "id": "3bd0a951-5496-41e2-9fa1-b94455bfc854",
-      "name": "Test List Resources"
+      "name": "Test List Resources",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "content": "## Step 1.  Create a JWT credential\n\nCreate a credential and copy the values from the generated files accordingly:\n- Key Type: *PEM Key*\n- Private Key: file content from *data/conjur/jwt/private_key.pem*\n- Private Key: file content from *data/conjur/jwt/private_key.pem*\n- Algorithm: *RS256*",
-        "height": 192,
-        "width": 720
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        112,
-        -240
-      ],
-      "id": "a9c0ab8f-9d7b-49ce-975c-f66a4d5978b6",
-      "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "content": "## Step 3\nUpdate Webhook value with the content from the file *data/conjur/jwt/jwk.json*\nBe sure it is set as *production*",
-        "height": 240,
-        "width": 544
+        "content": "## Manual Test\nClick *Execute Workflow* and check if it is successful ",
+        "height": 480,
+        "width": 384,
+        "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        112,
-        272
-      ],
-      "typeVersion": 1,
-      "id": "c8664b3e-ce90-4a81-8dab-c697fa1603f0",
-      "name": "Sticky Note2"
-    },
-    {
-      "parameters": {
-        "content": "## Step 2\nUpdate the credential of \"Sign JWT Token\" to the one created in Step 1",
-        "height": 272,
-        "width": 320
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        512,
-        -32
-      ],
-      "typeVersion": 1,
-      "id": "3ce89407-0a46-47f9-89e9-9b0fb18a6def",
-      "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "content": "## Step 4\nClick *Save* and *Execute Workflow* and check if it is successful ",
-        "height": 240,
-        "width": 544
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        112,
-        528
+        1840,
+        464
       ],
       "typeVersion": 1,
       "id": "1972fa36-82ec-438e-af85-dc56122199bd",
@@ -431,19 +250,711 @@
     },
     {
       "parameters": {
-        "content": "# n8n Conjur synchronizer\n\nThis workflow is for sync secrets from CyberArk Conjur/Secrets Manager to n8n as credential\n\nGitHub: https://github.com/quincycheng/n8n-conjur-protectai-local_llm",
-        "height": 1200,
-        "width": 1696,
-        "color": 5
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        608
+      ],
+      "id": "d4fa0e5b-380f-450f-b35b-67b67554a45a",
+      "name": "When chat message received",
+      "webhookId": "ec857b76-1c41-4a6b-9887-984a20232993"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Prompt').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant.\nYou can fetch database names using \"Get DB Names\"\nYou know today's date is {{$now.format('yyyy-MM-DD')}} and the time is {{$now.format('HH:mm:ss')}}.\nTry your best to answer the user question if there is no function provided for the prompt\nAlways response in a friendly and human readable format"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        592
+      ],
+      "id": "5bdaa07a-56ee-43a9-b61c-501430325570",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Prompt').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1552,
+        800
+      ],
+      "id": "70884f26-36e4-485a-a829-3d24f9c43c19",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "UchuEkNQlMJuSom2",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## LLM Guard as Guardrails of LiteLLM\n1. Credential of LiteLLM is sync from Conjur (see above)\n2. LLM Guard as LiteLLM guardrail\n3. Input/Output of LLM are inspected by LLM Guard\n4. Only verified info are sent to/from Ollama",
+        "height": 144,
+        "width": 560,
+        "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        48,
-        -400
+        640,
+        784
+      ],
+      "typeVersion": 1,
+      "id": "8d6ebf5e-cd85-40bb-9711-71d51544b468",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Access to AI Tools\n1. Credential of Database is sync from Conjur \n(see above)\n2. Access to memory of AI agent is protected\n3. Access to AI Tools are also protected",
+        "height": 144,
+        "width": 592,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1200,
+        784
+      ],
+      "typeVersion": 1,
+      "id": "9f15611b-bbc0-4963-b890-4f4c5490f5b6",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Get Secrets from Conjur OSS using Authn-JWT\nAction:  List / GetSecret / Sync",
+        "height": 272,
+        "width": 2240,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        960
       ],
       "typeVersion": 1,
       "id": "278a3c84-2b0e-4815-8049-22a19b6ee562",
       "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Sync Credentials from Conjur OSS",
+        "height": 224,
+        "width": 448,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        896,
+        544
+      ],
+      "typeVersion": 1,
+      "id": "2a191edc-00c1-4f0a-8977-93e92e994b01",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const path  = $('When Executed by Another Workflow').last().json.secret_id ?? \"\";\nreturn { \"uri\": encodeURIComponent(  \"conjur:variable:\" + path  )};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        976
+      ],
+      "id": "6bd31e6d-81dc-4894-804a-487d899dca4e",
+      "name": "Encode Path"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "39f96e42-1b1f-41b0-86f5-3f93fc256c19",
+                    "leftValue": "={{ $('When Executed by Another Workflow').first().json.action }}",
+                    "rightValue": "List",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ab7b4a7b-8be9-4a86-b141-ac8548efa223",
+                    "leftValue": "={{ $('When Executed by Another Workflow').first().json.action }}",
+                    "rightValue": "List",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "List"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1136,
+        992
+      ],
+      "id": "684fee09-b3b2-4d6b-a538-a02aff625f7b",
+      "name": "Is List action?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4w3D0w3Hy4DxEn3g",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4w3D0w3Hy4DxEn3g",
+          "cachedResultName": "n8n-jwt-sync"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "secret_id": "data/n8n/database/password",
+            "action": "Sync",
+            "cred_name": "Postgres account",
+            "cred_path": "data.password"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "secret_id",
+              "displayName": "secret_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "cred_name",
+              "displayName": "cred_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "cred_path",
+              "displayName": "cred_path",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2064,
+        576
+      ],
+      "id": "744e1efb-b659-445e-8d8a-65f06de3cc46",
+      "name": "Test Sync"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/secrets?variable_ids={{ $('Encode Path').item.json.uri }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Token token=\"{{ $('Authn with CyberArk Conjur using JWT').item.json.data }}\""
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1584,
+        976
+      ],
+      "id": "456f93a7-ee45-4c82-816a-9478185f0fdd",
+      "name": "Get Secret Value"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "39f96e42-1b1f-41b0-86f5-3f93fc256c19",
+                    "leftValue": "={{ $('When Executed by Another Workflow').first().json.action }}",
+                    "rightValue": "Sync",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ab7b4a7b-8be9-4a86-b141-ac8548efa223",
+                    "leftValue": "={{ $('When Executed by Another Workflow').first().json.action }}",
+                    "rightValue": "Sync",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sync"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1744,
+        976
+      ],
+      "id": "f9b054f4-1015-441d-8827-88ab61ce3776",
+      "name": "Is Sync Action"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT datname FROM pg_database WHERE datistemplate = false;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        800
+      ],
+      "id": "da52f76e-eac0-4498-8151-d9c93da9901a",
+      "name": "Get DB Names",
+      "credentials": {
+        "postgres": {
+          "id": "UchuEkNQlMJuSom2",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=#!/bin/bash\n\n# Step 1: Define variables\nINPUT_JSON=\"$(n8n export:credentials --all --decrypted)\"\nSECRET_ID=\"{{ $('When Executed by Another Workflow').item.json.secret_id }}\"\n\nCRED_NAME=\"{{ $('When Executed by Another Workflow').item.json.cred_name }}\"\nJSON_PATH=\"{{ $('When Executed by Another Workflow').item.json.cred_path }}\"\nNEW_VALUE=$( echo '{{ JSON.stringify($('Get Secret Value').item.json) }}' | jq -r 'to_entries[] | .value')\n\n\n# Step 2: Extract and update\n\n# Convert JSON_PATH to jq path array\nJQ_PATH=$(echo \"$JSON_PATH\" | awk -F. '{for(i=1;i<=NF;i++) printf \"\\\"%s\\\",\", $i}' | sed 's/,$//')\n\n\n# Create a temp file using BusyBox-compatible mktemp\nTEMP_FILE=$(mktemp /tmp/tmp.XXXXXX)\n\n# Extract, update, and save to temp file\necho \"$INPUT_JSON\" | jq --arg name \"$CRED_NAME\" --argjson path \"[$JQ_PATH]\" --arg value \"$NEW_VALUE\" '\n  map(select(.name == $name))\n  | map(setpath($path; $value))\n' > \"$TEMP_FILE\"\n\n# Import\nn8n import:credentials --input=$TEMP_FILE\n\n# Remove the temp file\nrm \"$TEMP_FILE\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        992
+      ],
+      "id": "42642fc4-db45-4ad1-ba0b-3826d6fbc54c",
+      "name": "Update Credential using n8n CLI"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4w3D0w3Hy4DxEn3g",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4w3D0w3Hy4DxEn3g",
+          "cachedResultName": "n8n-jwt-sync"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "Sync",
+            "secret_id": "data/n8n/database/password",
+            "cred_name": "Postgres account",
+            "cred_path": ".data.password"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "secret_id",
+              "displayName": "secret_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "cred_name",
+              "displayName": "cred_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "cred_path",
+              "displayName": "cred_path",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        592
+      ],
+      "id": "dd88ac96-25d6-42b9-bcc0-95e6ab5bbf1d",
+      "name": "Sync Database Secret"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4w3D0w3Hy4DxEn3g",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4w3D0w3Hy4DxEn3g",
+          "cachedResultName": "n8n-jwt-sync"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "Sync",
+            "secret_id": "data/n8n/litellm/password",
+            "cred_name": "LiteLLM with LLM Guard account",
+            "cred_path": ".data.apiKey"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "secret_id",
+              "displayName": "secret_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "cred_name",
+              "displayName": "cred_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "cred_path",
+              "displayName": "cred_path",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1184,
+        592
+      ],
+      "id": "f2a2a13d-4497-4965-8b72-014c6e363ce8",
+      "name": "Sync LiteLLM Secret"
+    },
+    {
+      "parameters": {
+        "content": "# Securing Secrets in n8n AI Agent. \n## with CyberArk Conjur OSS and Palo Alto LLM-Guard\nGitHub: https://github.com/quincycheng/n8n-conjur-protectai-local_llm",
+        "height": 480,
+        "width": 1840
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "0e825541-ad82-427e-9653-aa59739dadc5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/authn-jwt/n8n/conjur/authenticate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "base64"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jwt",
+              "value": "={{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        752,
+        992
+      ],
+      "id": "5716f711-7dce-4f0c-88e7-d9d4e82781fa",
+      "name": "Authn with CyberArk Conjur using JWT"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "llama3.1",
+          "mode": "list",
+          "cachedResultName": "llama3.1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        800
+      ],
+      "id": "8199b463-8f7e-45fa-89bb-feee7dee12e8",
+      "name": "LiteLLM Proxy with LLM Guard",
+      "credentials": {
+        "openAiApi": {
+          "id": "YKDu3Ob9ZRjfV91G",
+          "name": "LiteLLM with LLM Guard account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        784
+      ],
+      "id": "738908b8-92d6-47b3-bf75-0009dbed8f77",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn [{ json: {  \"sessionId\": $input.first().json.sessionId, \"chatInput\": $input.first().json.chatInput } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        608
+      ],
+      "id": "1e233faf-d610-4be4-a07a-f7453c879028",
+      "name": "Prompt"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5b969cb-f8b6-44f3-9148-170b15be11f3",
+              "name": "chatInput",
+              "value": "What time is it?",
+              "type": "string"
+            },
+            {
+              "id": "7154c64c-5938-448a-9c8b-e4316770d616",
+              "name": "sessionId",
+              "value": "={{ [...Array(32)].map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(Math.floor(Math.random() * 62))).join('') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        784
+      ],
+      "id": "72282276-bd39-4708-b4d7-f38127a87ed4",
+      "name": "Predefined Prompt"
+    },
+    {
+      "parameters": {
+        "content": "\n\n## 🤖 Autonomous\nJust get the current time regularly \nfor demo",
+        "width": 592,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        768
+      ],
+      "typeVersion": 1,
+      "id": "0f1fb7f7-eaa6-4d05-94f9-d9155bb9bcb5",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "\n\n## 💬 Chat with Human\nTry  **Tell me the names of my databases**",
+        "width": 592,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "4d65d686-9887-4b2e-87ea-8d4656eb391e",
+      "name": "Sticky Note7"
     }
   ],
   "pinData": {},
@@ -470,17 +981,6 @@
         ]
       ]
     },
-    "Encoded Secrets Path": {
-      "main": [
-        [
-          {
-            "node": "Get Secrets from CyberArk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "When Executed by Another Workflow": {
       "main": [
         [
@@ -492,18 +992,23 @@
         ]
       ]
     },
-    "Authn with CyberArk Conjur using JWT": {
+    "Manual Test": {
       "main": [
         [
           {
-            "node": "Switch",
+            "node": "Test Sync",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Manual Test": {
+    "Test Get Secret": {
+      "main": [
+        []
+      ]
+    },
+    "Test List Resources": {
       "main": [
         [
           {
@@ -514,11 +1019,44 @@
         ]
       ]
     },
-    "Switch": {
+    "When chat message received": {
       "main": [
         [
           {
-            "node": "Encoded Secrets Path",
+            "node": "Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encode Path": {
+      "main": [
+        [
+          {
+            "node": "Get Secret Value",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is List action?": {
+      "main": [
+        [
+          {
+            "node": "Encode Path",
             "type": "main",
             "index": 0
           }
@@ -532,7 +1070,41 @@
         ]
       ]
     },
-    "Test Get Secret": {
+    "Get Secret Value": {
+      "main": [
+        [
+          {
+            "node": "Is Sync Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Sync Action": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Update Credential using n8n CLI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get DB Names": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Sync": {
       "main": [
         [
           {
@@ -543,9 +1115,81 @@
         ]
       ]
     },
-    "Test List Resources": {
+    "Sync Database Secret": {
       "main": [
-        []
+        [
+          {
+            "node": "Sync LiteLLM Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync LiteLLM Secret": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authn with CyberArk Conjur using JWT": {
+      "main": [
+        [
+          {
+            "node": "Is List action?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LiteLLM Proxy with LLM Guard": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Predefined Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt": {
+      "main": [
+        [
+          {
+            "node": "Sync Database Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Predefined Prompt": {
+      "main": [
+        [
+          {
+            "node": "Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
@@ -553,7 +1197,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "5e42b3aa-80ba-4d2c-9937-f5cdd2578e07",
+  "versionId": "521beafa-bbdc-489d-92fb-795b502033ce",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "ab87b0eebf65921c99cb48269d208cae51057f8a7f3b1589f73c998ba8c7645f"
@@ -561,3 +1205,5 @@
   "id": "4w3D0w3Hy4DxEn3g",
   "tags": []
 }
+
+
