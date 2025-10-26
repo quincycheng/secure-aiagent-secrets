@@ -1,4 +1,4 @@
-# secure-agent-secrets
+# secure-aiagent-secrets
 Securing secrets of AI Agent & LLM with CyberArk Conjur & LLM Guard from ProtectAI | Palo Alto Networks
 
 - ✅ Supports Air-gapped, self-hosted and cloud environment
