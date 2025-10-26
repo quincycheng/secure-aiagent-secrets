@@ -1,6 +1,8 @@
 # n8n-conjur-protectai-local_llm
 Securing local AI Agent & LLM with CyberArk Conjur & LLM Guard from ProtectAI | Palo Alto Networks
 
+![Screencap of n8n](/assets/images/n8n.png)
+
 # Software 
 - CyberArk Conjur OSS
 https://www.conjur.org/
