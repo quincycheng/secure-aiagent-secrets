@@ -1,7 +1,16 @@
-# n8n-conjur-protectai-local_llm
-Securing local AI Agent & LLM with CyberArk Conjur & LLM Guard from ProtectAI | Palo Alto Networks
+# secure-agent-secrets
+Securing secrets of AI Agent & LLM with CyberArk Conjur & LLM Guard from ProtectAI | Palo Alto Networks
+✅ Supports Air-gapped, self-hosted and cloud environment
+✅ Support autonomous (time-driven and event-driven) and interactive use cases
+Planned to add CyberArk Agent Guard use case
 
-![Screencap of n8n](/assets/images/n8n.png)
+![Screencap of n8n](images/n8n.png)
+
+# Use Cases
+✅ Inject Secrets for AI Tools from Conjur
+✅ Inject Secrets for AI Agent Memory from Conjur
+✅ Detect and guardrail secrets from sending LLM as training data
+✅ Detect and guardrail secrets from sending from LLM as sensitive data
 
 # Software 
 - CyberArk Conjur OSS
