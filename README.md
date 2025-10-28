@@ -15,6 +15,13 @@ Securing secrets of AI Agent & LLM with CyberArk Conjur & LLM Guard from Protect
 - ⚙️ Secure secrets retrieval for MCP communication
 
 # How to
+## Prerequisites
+Below is the environment used as development environment.   
+You can use your own equipments that have similar configuration
+- Hardware: NVIDIA Jetson Orin Nano Super Developer Kit (https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/)
+- OS: Ubuntu 22.04.5 LTS
+- Container: Docker version 28.4.0
+
 ## Setup
 1. Execute `bin/start.sh` to pull and create containers
 ![Screencap of CLI](images/setup.gif)
