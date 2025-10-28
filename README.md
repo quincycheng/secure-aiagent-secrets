@@ -22,14 +22,13 @@ Securing secrets of AI Agent & LLM with CyberArk Conjur & LLM Guard from Protect
 3. Answer the n8n popup to create an user account for first time access
 ![Screencap of n8n](images/n8n-first-login.gif)
 
-
 ## Try it out
-4. Open the imported workflow named *n8n-jwt-sync* 
-5. Test for interactive use case by clicking `Open Chat` and input `Tell me the names of my databases` in the chat windows
-![Screencap of n8n](images/n8n-chat.gif)
+1. Open the imported workflow named *n8n-jwt-sync* 
+2. Test for interactive use case by clicking `Open Chat` and input `Tell me the names of my databases` in the chat windows
+![Screencap of n8n](images/n8n-chat-5x.gif)
 
-6. Test for autonomous use case by clicking `Execute Workflow`
-![Screencap of n8n](images/n8n-autonomous.gif)
+3. Test for autonomous use case by clicking `Execute Workflow`
+![Screencap of n8n](images/n8n-autonomous-5x.gif)
 
 
 ## Software Access
@@ -44,5 +43,5 @@ Securing secrets of AI Agent & LLM with CyberArk Conjur & LLM Guard from Protect
 | llm-guard-litellm   | 4321  | Container                              | Generated during installation: `data/.env.llm-guard`    | llm-guard-litellm<br>https://github.com/quincycheng/llm-guard-litellm<br>LLM-Guard container as LiteLLM custom guardrails                                                                                                                                                                                                            |
 | PostgreSQL          | 5432  | Container                              | Generated during installation: `data/.env.postgres`     | https://www.postgresql.org/                                                                                                                                                                                                                                                                                                          |
 ## Destroy it!
-Execute `bin/99-destroy.sh`
+- Execute `bin/99-destroy.sh`
 ![Screencap of CLI](images/destroy.gif)
