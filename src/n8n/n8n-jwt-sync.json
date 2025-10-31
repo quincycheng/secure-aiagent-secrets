@@ -791,7 +791,7 @@
     },
     {
       "parameters": {
-        "content": "# Securing Secrets in n8n AI Agent. \n## with CyberArk Conjur OSS and Palo Alto LLM-Guard\nGitHub: https://github.com/quincycheng/secure-aiagent-secrets",
+        "content": "# Securing Secrets in n8n AI Agent. \n## with CyberArk Conjur OSS and Palo Alto Networks LLM-Guard\nGitHub: https://github.com/quincycheng/secure-aiagent-secrets",
         "height": 480,
         "width": 1840
       },
